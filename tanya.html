@@ -1,0 +1,743 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>For Tanya</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&family=Raleway:wght@200;300;400&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --black:#050508;
+  --navy:#080c1a;
+  --gold:#c9a96e;
+  --gold-soft:#e8d5b0;
+  --ivory:#f5f0e8;
+  --lavender:#b8a9d4;
+  --pink:#d4a0a0;
+  --silver:#a8b0c0;
+  --glow-gold:rgba(201,169,110,0.15);
+  --glow-lav:rgba(184,169,212,0.12);
+}
+html{scroll-behavior:smooth;font-size:16px}
+body{
+  background:var(--black);
+  color:var(--ivory);
+  font-family:'Raleway',sans-serif;
+  font-weight:300;
+  overflow-x:hidden;
+  cursor:none;
+}
+
+/* CURSOR */
+#cursor{
+  position:fixed;width:12px;height:12px;
+  background:var(--gold);border-radius:50%;
+  pointer-events:none;z-index:9999;
+  transform:translate(-50%,-50%);
+  transition:transform .15s ease,opacity .3s;
+  mix-blend-mode:screen;
+}
+#cursor-glow{
+  position:fixed;width:80px;height:80px;
+  background:radial-gradient(circle,rgba(201,169,110,.18) 0%,transparent 70%);
+  border-radius:50%;pointer-events:none;z-index:9998;
+  transform:translate(-50%,-50%);
+  transition:transform .4s ease;
+}
+
+/* GRAIN */
+body::before{
+  content:'';position:fixed;inset:0;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");
+  opacity:.4;pointer-events:none;z-index:9997;animation:grainAnim 0.8s steps(2) infinite;
+}
+@keyframes grainAnim{0%{transform:translate(0,0)}25%{transform:translate(-2px,2px)}50%{transform:translate(2px,-1px)}75%{transform:translate(-1px,-2px)}100%{transform:translate(1px,1px)}}
+
+/* LOADING */
+#loading{
+  position:fixed;inset:0;background:var(--black);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  z-index:9000;transition:opacity 1.5s ease;
+}
+#loading.fade-out{opacity:0;pointer-events:none}
+.load-text{
+  font-family:'Cormorant Garamond',serif;
+  font-size:clamp(1rem,2vw,1.3rem);
+  font-weight:300;letter-spacing:.4em;
+  color:var(--gold);opacity:0;
+  animation:loadReveal 0.8s ease .5s forwards;
+}
+.load-bar{
+  width:180px;height:1px;background:rgba(201,169,110,.2);
+  margin-top:32px;overflow:hidden;
+}
+.load-bar-inner{
+  height:100%;background:var(--gold);width:0;
+  animation:loadBar 2.5s ease forwards;
+}
+@keyframes loadReveal{to{opacity:.7}}
+@keyframes loadBar{to{width:100%}}
+
+/* CANVAS */
+#canvas{position:fixed;inset:0;pointer-events:none;z-index:1}
+
+/* OPENING */
+#opening{
+  position:fixed;inset:0;background:var(--black);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  z-index:500;transition:opacity 2s ease;
+  gap:32px;padding:40px;text-align:center;
+}
+#opening.done{opacity:0;pointer-events:none}
+.open-line{
+  font-family:'Cormorant Garamond',serif;
+  font-weight:300;font-style:italic;
+  color:var(--gold-soft);opacity:0;
+  letter-spacing:.05em;line-height:1.4;
+}
+.open-line:nth-child(1){font-size:clamp(2rem,6vw,4.5rem);letter-spacing:.15em;font-style:normal;color:var(--gold)}
+.open-line:nth-child(2){font-size:clamp(1rem,2.5vw,1.6rem);color:var(--ivory);opacity:0}
+.open-line:nth-child(3){font-size:clamp(1rem,2vw,1.3rem);color:var(--silver);opacity:0}
+.open-line.show{animation:lineReveal 2s ease forwards}
+@keyframes lineReveal{0%{opacity:0;transform:translateY(20px)}100%{opacity:1;transform:translateY(0)}}
+
+/* AUDIO */
+#audioBtn{
+  position:fixed;top:28px;right:32px;z-index:800;
+  background:rgba(255,255,255,.05);backdrop-filter:blur(12px);
+  border:1px solid rgba(201,169,110,.2);
+  padding:10px 22px;border-radius:40px;
+  font-family:'Raleway',sans-serif;font-weight:300;font-size:.75rem;
+  letter-spacing:.2em;color:var(--gold);cursor:pointer;
+  transition:all .3s;display:none;
+}
+#audioBtn:hover{background:rgba(201,169,110,.1);border-color:var(--gold)}
+
+/* MAIN CONTENT */
+#main{opacity:0;transition:opacity 2s ease;position:relative;z-index:2}
+#main.show{opacity:1}
+
+/* SECTIONS */
+section{
+  min-height:100vh;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;
+  padding:clamp(60px,10vw,140px) clamp(24px,8vw,120px);
+  position:relative;overflow:hidden;
+}
+
+/* HERO */
+#hero{
+  background:radial-gradient(ellipse 80% 60% at 50% 40%,rgba(10,15,40,.9) 0%,var(--black) 100%);
+  text-align:center;gap:28px;
+}
+.hero-eyebrow{
+  font-size:clamp(.65rem,1.2vw,.85rem);letter-spacing:.5em;
+  color:var(--gold);font-weight:400;opacity:.7;
+  animation:fadeUp 1.2s ease .3s both;
+}
+.hero-title{
+  font-family:'Cormorant Garamond',serif;
+  font-size:clamp(2.5rem,8vw,7rem);
+  font-weight:300;line-height:1.1;
+  color:var(--ivory);letter-spacing:-.01em;
+  animation:fadeUp 1.2s ease .6s both;
+}
+.hero-title em{color:var(--gold);font-style:italic}
+.hero-sub{
+  font-size:clamp(.85rem,1.8vw,1.1rem);
+  color:var(--silver);line-height:1.8;max-width:520px;
+  letter-spacing:.05em;
+  animation:fadeUp 1.2s ease .9s both;
+}
+.scroll-hint{
+  margin-top:60px;display:flex;flex-direction:column;align-items:center;gap:12px;
+  opacity:.4;animation:fadeUp 1.2s ease 1.2s both;
+}
+.scroll-hint span{font-size:.65rem;letter-spacing:.4em;color:var(--gold)}
+.scroll-line{width:1px;height:60px;background:linear-gradient(to bottom,var(--gold),transparent);animation:scrollPulse 2s ease infinite}
+@keyframes scrollPulse{0%,100%{opacity:.3;transform:scaleY(.8)}50%{opacity:1;transform:scaleY(1)}}
+@keyframes fadeUp{from{opacity:0;transform:translateY(40px)}to{opacity:1;transform:translateY(0)}}
+
+/* STORY SECTIONS */
+.story-section{
+  background:var(--navy);text-align:center;gap:40px;
+}
+.story-section::before{
+  content:'';position:absolute;inset:0;
+  background:radial-gradient(ellipse 60% 50% at 50% 50%,var(--glow-gold) 0%,transparent 70%);
+}
+.section-number{
+  font-size:.65rem;letter-spacing:.5em;color:var(--gold);
+  opacity:.5;font-weight:400;
+}
+.section-title{
+  font-family:'Cormorant Garamond',serif;
+  font-size:clamp(1.6rem,4vw,3.2rem);
+  font-weight:300;font-style:italic;
+  color:var(--ivory);line-height:1.3;max-width:680px;
+}
+.section-body{
+  font-size:clamp(.85rem,1.6vw,1rem);
+  color:var(--silver);line-height:2;max-width:520px;letter-spacing:.04em;
+}
+.divider{
+  width:60px;height:1px;background:linear-gradient(to right,transparent,var(--gold),transparent);
+}
+
+/* GLASS CARDS */
+.glass-cards{
+  display:flex;gap:24px;flex-wrap:wrap;justify-content:center;
+  max-width:900px;width:100%;
+}
+.glass-card{
+  background:rgba(255,255,255,.03);
+  backdrop-filter:blur(20px);
+  border:1px solid rgba(201,169,110,.12);
+  border-radius:16px;padding:32px 36px;
+  max-width:260px;text-align:left;
+  transition:all .5s ease;position:relative;overflow:hidden;
+}
+.glass-card::before{
+  content:'';position:absolute;inset:0;
+  background:radial-gradient(ellipse 80% 80% at 50% 0%,rgba(201,169,110,.08),transparent);
+  opacity:0;transition:opacity .5s;
+}
+.glass-card:hover::before{opacity:1}
+.glass-card:hover{transform:translateY(-8px);border-color:rgba(201,169,110,.3)}
+.card-icon{font-size:1.5rem;margin-bottom:20px;filter:grayscale(1) brightness(1.5)}
+.card-title{font-family:'Cormorant Garamond',serif;font-size:1.1rem;color:var(--gold);margin-bottom:10px}
+.card-text{font-size:.8rem;color:var(--silver);line-height:1.8;letter-spacing:.03em}
+
+/* AURORA SECTION */
+#presence{
+  background:linear-gradient(180deg,var(--navy) 0%,#0a0818 100%);
+  position:relative;text-align:center;gap:40px;
+}
+.aurora{
+  position:absolute;inset:0;overflow:hidden;
+}
+.aurora-layer{
+  position:absolute;border-radius:50%;filter:blur(80px);animation:auroraFloat 8s ease infinite;
+}
+.aurora-layer:nth-child(1){width:60%;height:40%;top:10%;left:-10%;background:rgba(184,169,212,.06);animation-delay:0s}
+.aurora-layer:nth-child(2){width:50%;height:50%;top:30%;right:-10%;background:rgba(201,169,110,.05);animation-delay:-3s}
+.aurora-layer:nth-child(3){width:40%;height:30%;bottom:10%;left:30%;background:rgba(212,160,160,.04);animation-delay:-6s}
+@keyframes auroraFloat{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(30px,-20px) scale(1.1)}}
+
+/* QUOTE SECTION */
+#gratitude{
+  background:var(--black);text-align:center;gap:60px;
+}
+.mega-quote{
+  font-family:'Cormorant Garamond',serif;
+  font-size:clamp(3rem,12vw,11rem);
+  font-weight:300;color:transparent;
+  background:linear-gradient(135deg,var(--gold) 0%,var(--gold-soft) 40%,var(--gold) 100%);
+  -webkit-background-clip:text;background-clip:text;
+  letter-spacing:-.02em;line-height:.9;
+}
+.gratitude-list{
+  display:flex;flex-wrap:wrap;gap:16px;justify-content:center;max-width:700px;
+}
+.gratitude-item{
+  font-family:'Cormorant Garamond',serif;font-style:italic;
+  font-size:clamp(.9rem,2vw,1.1rem);color:var(--silver);
+  padding:10px 20px;border:1px solid rgba(201,169,110,.15);
+  border-radius:40px;letter-spacing:.05em;
+  transition:all .4s;
+}
+.gratitude-item:hover{color:var(--gold);border-color:rgba(201,169,110,.4)}
+
+/* MEMORY GALLERY */
+#gallery{
+  background:linear-gradient(180deg,#080812 0%,var(--navy) 100%);
+  gap:60px;
+}
+.gallery-title{
+  font-family:'Cormorant Garamond',serif;
+  font-size:clamp(1.5rem,3.5vw,2.8rem);
+  font-weight:300;font-style:italic;color:var(--ivory);text-align:center;
+}
+.polaroid-grid{
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
+  gap:32px;max-width:900px;width:100%;
+}
+.polaroid{
+  background:rgba(245,240,232,.04);
+  border:1px solid rgba(245,240,232,.08);
+  border-radius:4px;padding:20px 20px 40px;
+  position:relative;
+  transition:all .6s cubic-bezier(.23,1,.32,1);
+  transform:rotate(var(--r, 0deg));
+}
+.polaroid:nth-child(2){--r:-1.5deg}
+.polaroid:nth-child(3){--r:1deg}
+.polaroid:nth-child(4){--r:-0.8deg}
+.polaroid:hover{transform:rotate(0deg) translateY(-12px) scale(1.02);border-color:rgba(201,169,110,.25)}
+.polaroid-inner{
+  width:100%;aspect-ratio:1;
+  background:linear-gradient(135deg,var(--glow-gold),var(--glow-lav));
+  border-radius:2px;margin-bottom:16px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:2rem;filter:grayscale(.3);
+  position:relative;overflow:hidden;
+}
+.polaroid-inner::after{
+  content:'';position:absolute;inset:0;
+  background:linear-gradient(135deg,rgba(255,255,255,.05) 0%,transparent 50%,rgba(0,0,0,.1) 100%);
+}
+.polaroid-caption{
+  font-family:'Cormorant Garamond',serif;font-style:italic;
+  font-size:.8rem;color:var(--silver);text-align:center;line-height:1.6;
+  letter-spacing:.03em;
+}
+
+/* ORB SECTION */
+#orb-section{
+  background:var(--black);text-align:center;gap:60px;min-height:80vh;
+}
+.orb-container{
+  display:flex;flex-direction:column;align-items:center;gap:40px;
+}
+.orb{
+  width:140px;height:140px;border-radius:50%;
+  background:radial-gradient(circle at 35% 35%,var(--gold-soft) 0%,var(--gold) 40%,#6b4c20 100%);
+  box-shadow:0 0 60px rgba(201,169,110,.4),0 0 120px rgba(201,169,110,.15),inset 0 0 40px rgba(255,255,255,.1);
+  cursor:pointer;position:relative;
+  animation:orbFloat 4s ease infinite;
+  transition:all .4s;
+}
+.orb::before{
+  content:'';position:absolute;inset:0;border-radius:50%;
+  background:radial-gradient(ellipse 50% 30% at 35% 30%,rgba(255,255,255,.3),transparent);
+}
+.orb:hover{
+  box-shadow:0 0 100px rgba(201,169,110,.6),0 0 200px rgba(201,169,110,.25),inset 0 0 60px rgba(255,255,255,.15);
+  transform:scale(1.08);
+}
+@keyframes orbFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-16px)}}
+.orb-hint{font-size:.7rem;letter-spacing:.4em;color:var(--gold);opacity:.5}
+.orb-message{
+  font-family:'Cormorant Garamond',serif;font-size:clamp(1rem,2.5vw,1.5rem);
+  font-style:italic;color:var(--ivory);max-width:520px;line-height:1.8;
+  opacity:0;transform:translateY(20px);transition:all 1.5s ease;letter-spacing:.03em;
+}
+.orb-message.show{opacity:1;transform:translateY(0)}
+
+/* ENDING */
+#ending{
+  background:linear-gradient(180deg,var(--navy) 0%,var(--black) 100%);
+  text-align:center;gap:40px;position:relative;
+}
+.ending-sky{
+  position:absolute;inset:0;overflow:hidden;
+}
+.star-field{
+  position:absolute;inset:0;
+  background-image:
+    radial-gradient(1px 1px at 20% 30%,rgba(255,255,255,.5) 0%,transparent 100%),
+    radial-gradient(1px 1px at 80% 10%,rgba(201,169,110,.4) 0%,transparent 100%),
+    radial-gradient(1px 1px at 50% 60%,rgba(255,255,255,.3) 0%,transparent 100%),
+    radial-gradient(1px 1px at 10% 70%,rgba(184,169,212,.5) 0%,transparent 100%),
+    radial-gradient(1px 1px at 90% 80%,rgba(255,255,255,.4) 0%,transparent 100%),
+    radial-gradient(1px 1px at 35% 85%,rgba(201,169,110,.3) 0%,transparent 100%),
+    radial-gradient(1.5px 1.5px at 65% 20%,rgba(255,255,255,.6) 0%,transparent 100%),
+    radial-gradient(1px 1px at 45% 45%,rgba(184,169,212,.4) 0%,transparent 100%);
+  animation:starTwinkle 6s ease infinite alternate;
+}
+@keyframes starTwinkle{0%{opacity:.6}100%{opacity:1}}
+.ending-line1{
+  font-family:'Cormorant Garamond',serif;
+  font-size:clamp(1rem,2.5vw,1.5rem);font-weight:300;
+  color:var(--silver);max-width:560px;line-height:1.9;letter-spacing:.03em;
+}
+.ending-name{
+  font-family:'Cormorant Garamond',serif;
+  font-size:clamp(2.5rem,7vw,6rem);font-weight:300;font-style:italic;
+  color:var(--gold);letter-spacing:.05em;
+}
+.ending-softer{
+  font-size:clamp(.9rem,1.8vw,1.1rem);color:var(--silver);
+  letter-spacing:.08em;font-style:italic;
+  font-family:'Cormorant Garamond',serif;
+}
+.made-with{
+  margin-top:80px;font-size:.65rem;letter-spacing:.4em;
+  color:rgba(201,169,110,.35);font-weight:400;
+}
+
+/* SCROLL REVEAL */
+.reveal{opacity:0;transform:translateY(50px);transition:opacity 1.2s ease,transform 1.2s ease}
+.reveal.visible{opacity:1;transform:translateY(0)}
+.reveal-delay-1{transition-delay:.2s}
+.reveal-delay-2{transition-delay:.4s}
+.reveal-delay-3{transition-delay:.6s}
+.reveal-delay-4{transition-delay:.8s}
+
+/* PARTICLES */
+.particle-burst{
+  position:fixed;pointer-events:none;z-index:600;
+  width:6px;height:6px;border-radius:50%;
+  background:var(--gold);
+  animation:particleBurst var(--d,.8s) ease forwards;
+}
+@keyframes particleBurst{
+  0%{opacity:1;transform:translate(0,0) scale(1)}
+  100%{opacity:0;transform:translate(var(--tx,0),var(--ty,0)) scale(0)}
+}
+
+/* RESPONSIVE */
+@media(max-width:768px){
+  .glass-cards{flex-direction:column;align-items:center}
+  .glass-card{max-width:100%}
+  .polaroid-grid{grid-template-columns:repeat(2,1fr)}
+  .gratitude-list{gap:10px}
+}
+</style>
+</head>
+<body>
+
+<!-- CURSOR -->
+<div id="cursor"></div>
+<div id="cursor-glow"></div>
+
+<!-- CANVAS -->
+<canvas id="canvas"></canvas>
+
+<!-- AUDIO -->
+<audio id="ambientAudio" loop preload="none">
+  <source src="data:audio/mpeg;base64," type="audio/mpeg">
+</audio>
+<button id="audioBtn" onclick="toggleAudio()">♪ MUSIC</button>
+
+<!-- LOADING -->
+<div id="loading">
+  <div class="load-text">Collecting memories...</div>
+  <div class="load-bar"><div class="load-bar-inner"></div></div>
+</div>
+
+<!-- OPENING SCENE -->
+<div id="opening">
+  <div class="open-line" id="o1">For Tanya</div>
+  <div class="open-line" id="o2">Some people enter life quietly...<br>and somehow make everything feel warmer.</div>
+  <div class="open-line" id="o3">You were one of those people.</div>
+</div>
+
+<!-- MAIN -->
+<div id="main">
+
+  <!-- HERO -->
+  <section id="hero">
+    <div class="hero-eyebrow">A letter of gratitude</div>
+    <h1 class="hero-title">Thank you for<br>being my <em>friend.</em></h1>
+    <p class="hero-sub">Not every connection changes life. But yours made ordinary moments feel beautiful.</p>
+    <div class="scroll-hint">
+      <span>SCROLL</span>
+      <div class="scroll-line"></div>
+    </div>
+  </section>
+
+  <!-- SECTION 1: COMFORT -->
+  <section class="story-section" id="comfort">
+    <div class="section-number reveal">01 / COMFORT</div>
+    <div class="divider reveal reveal-delay-1"></div>
+    <h2 class="section-title reveal reveal-delay-2">
+      Thank you for the conversations that made difficult days feel lighter.
+    </h2>
+    <p class="section-body reveal reveal-delay-3">
+      For staying. For listening. For understanding things I never explained properly. There is a rare kind of magic in someone who simply shows up — and you always did.
+    </p>
+    <div class="glass-cards reveal reveal-delay-4">
+      <div class="glass-card">
+        <div class="card-icon">🕯</div>
+        <div class="card-title">Warmth</div>
+        <div class="card-text">Every conversation held a quiet comfort that words rarely capture.</div>
+      </div>
+      <div class="glass-card">
+        <div class="card-icon">🌿</div>
+        <div class="card-title">Patience</div>
+        <div class="card-text">You never rushed the silence. You understood it.</div>
+      </div>
+      <div class="glass-card">
+        <div class="card-icon">✦</div>
+        <div class="card-title">Presence</div>
+        <div class="card-text">Simply being there — a gift not everyone knows how to give.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SECTION 2: PRESENCE -->
+  <section id="presence">
+    <div class="aurora">
+      <div class="aurora-layer"></div>
+      <div class="aurora-layer"></div>
+      <div class="aurora-layer"></div>
+    </div>
+    <div class="section-number reveal" style="position:relative">02 / PRESENCE</div>
+    <div class="divider reveal reveal-delay-1" style="position:relative"></div>
+    <h2 class="section-title reveal reveal-delay-2" style="position:relative">
+      Some people turn ordinary moments into memories simply because they were there.
+    </h2>
+    <p class="section-body reveal reveal-delay-3" style="position:relative">
+      You became one of those rare people for me. Your presence always felt peaceful — like the world became a gentler place just by being near your energy.
+    </p>
+  </section>
+
+  <!-- SECTION 3: FRIENDSHIP -->
+  <section class="story-section" id="friendship">
+    <div class="section-number reveal">03 / FRIENDSHIP</div>
+    <div class="divider reveal reveal-delay-1"></div>
+    <h2 class="section-title reveal reveal-delay-2">
+      Real friendship is rare. And somehow, in this noisy world, I found comfort in your energy.
+    </h2>
+    <p class="section-body reveal reveal-delay-3">
+      That comfort became unforgettable. Not the kind you find easily — the kind that quietly becomes a part of who you are.
+    </p>
+  </section>
+
+  <!-- SECTION 4: GRATITUDE -->
+  <section id="gratitude">
+    <div class="mega-quote reveal">Thank You</div>
+    <div class="gratitude-list reveal reveal-delay-2">
+      <div class="gratitude-item">For the laughter</div>
+      <div class="gratitude-item">For the memories</div>
+      <div class="gratitude-item">For the kindness</div>
+      <div class="gratitude-item">For the comfort</div>
+      <div class="gratitude-item">For the honesty</div>
+      <div class="gratitude-item">For simply being yourself</div>
+    </div>
+  </section>
+
+  <!-- MEMORY GALLERY -->
+  <section id="gallery">
+    <h2 class="gallery-title reveal">Little moments that became everything</h2>
+    <div class="polaroid-grid reveal reveal-delay-1">
+      <div class="polaroid">
+        <div class="polaroid-inner">🌙</div>
+        <div class="polaroid-caption">Some memories quietly<br>stay forever</div>
+      </div>
+      <div class="polaroid">
+        <div class="polaroid-inner">✨</div>
+        <div class="polaroid-caption">Little moments that<br>became important</div>
+      </div>
+      <div class="polaroid">
+        <div class="polaroid-inner">🕊</div>
+        <div class="polaroid-caption">The kind of smiles<br>that never fade</div>
+      </div>
+      <div class="polaroid">
+        <div class="polaroid-inner">🌸</div>
+        <div class="polaroid-caption">Ordinary evenings,<br>extraordinary warmth</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ORB INTERACTIVE -->
+  <section id="orb-section">
+    <div class="section-title reveal" style="max-width:500px">A moment just for you</div>
+    <div class="orb-container reveal reveal-delay-1">
+      <div class="orb" id="orb" onclick="orbClick(event)"></div>
+      <div class="orb-hint">touch to reveal</div>
+      <div class="orb-message" id="orbMsg">
+        "No matter where life goes, I'll always be grateful that I met someone like you."
+      </div>
+    </div>
+  </section>
+
+  <!-- ENDING -->
+  <section id="ending">
+    <div class="ending-sky"><div class="star-field"></div></div>
+    <p class="ending-line1 reveal" style="position:relative">
+      Some friendships become memories.<br>Some become part of who we are.
+    </p>
+    <div class="ending-name reveal reveal-delay-2" style="position:relative">Thank you, Tanya.</div>
+    <p class="ending-softer reveal reveal-delay-3" style="position:relative">You made life feel softer.</p>
+    <p class="made-with reveal reveal-delay-4" style="position:relative">Made with gratitude ✦</p>
+  </section>
+
+</div>
+
+<script>
+// CURSOR
+const cur = document.getElementById('cursor');
+const glow = document.getElementById('cursor-glow');
+let mx=0,my=0,gx=0,gy=0;
+document.addEventListener('mousemove',e=>{
+  mx=e.clientX;my=e.clientY;
+  cur.style.left=mx+'px';cur.style.top=my+'px';
+});
+function animateGlow(){
+  gx+=(mx-gx)*.08;gy+=(my-gy)*.08;
+  glow.style.left=gx+'px';glow.style.top=gy+'px';
+  requestAnimationFrame(animateGlow);
+}
+animateGlow();
+
+// PARTICLES CANVAS
+const canvas=document.getElementById('canvas');
+const ctx=canvas.getContext('2d');
+let W,H,particles=[];
+function resize(){W=canvas.width=window.innerWidth;H=canvas.height=window.innerHeight}
+resize();window.addEventListener('resize',resize);
+
+class Particle{
+  constructor(){this.reset()}
+  reset(){
+    this.x=Math.random()*W;
+    this.y=Math.random()*H;
+    this.size=Math.random()*1.5+.3;
+    this.speedX=(Math.random()-.5)*.3;
+    this.speedY=-Math.random()*.4-.1;
+    this.opacity=Math.random()*.6+.1;
+    this.color=Math.random()>.5?'201,169,110':'184,169,212';
+    this.life=0;this.maxLife=Math.random()*300+150;
+  }
+  update(){
+    this.x+=this.speedX;this.y+=this.speedY;this.life++;
+    if(this.life>this.maxLife||this.y<-10)this.reset();
+    this.opacity=Math.sin((this.life/this.maxLife)*Math.PI)*0.5;
+  }
+  draw(){
+    ctx.save();ctx.globalAlpha=this.opacity;
+    ctx.fillStyle=`rgba(${this.color},1)`;
+    ctx.beginPath();ctx.arc(this.x,this.y,this.size,0,Math.PI*2);ctx.fill();
+    ctx.restore();
+  }
+}
+for(let i=0;i<120;i++)particles.push(new Particle());
+function animParticles(){
+  ctx.clearRect(0,0,W,H);
+  particles.forEach(p=>{p.update();p.draw()});
+  requestAnimationFrame(animParticles);
+}
+animParticles();
+
+// LOADING + OPENING SEQUENCE
+window.addEventListener('load',()=>{
+  setTimeout(()=>{
+    document.getElementById('loading').classList.add('fade-out');
+    setTimeout(startOpening,1500);
+  },3000);
+});
+
+function startOpening(){
+  const opening=document.getElementById('opening');
+  const o1=document.getElementById('o1');
+  const o2=document.getElementById('o2');
+  const o3=document.getElementById('o3');
+  
+  setTimeout(()=>o1.classList.add('show'),200);
+  setTimeout(()=>o2.classList.add('show'),2200);
+  setTimeout(()=>o3.classList.add('show'),4200);
+  setTimeout(()=>{
+    opening.classList.add('done');
+    setTimeout(()=>{
+      document.getElementById('main').classList.add('show');
+      document.getElementById('audioBtn').style.display='block';
+    },1500);
+  },6500);
+}
+
+// SCROLL REVEAL
+const observer=new IntersectionObserver(entries=>{
+  entries.forEach(e=>{if(e.isIntersecting)e.target.classList.add('visible')});
+},{threshold:.15,rootMargin:'0px 0px -60px 0px'});
+document.querySelectorAll('.reveal').forEach(el=>observer.observe(el));
+
+// ORB
+let orbActivated=false;
+function orbClick(e){
+  if(orbActivated)return;
+  orbActivated=true;
+  const msg=document.getElementById('orbMsg');
+  msg.classList.add('show');
+  // burst particles
+  for(let i=0;i<40;i++){
+    const p=document.createElement('div');
+    p.className='particle-burst';
+    const angle=Math.random()*Math.PI*2;
+    const dist=Math.random()*200+60;
+    p.style.setProperty('--tx',Math.cos(angle)*dist+'px');
+    p.style.setProperty('--ty',Math.sin(angle)*dist+'px');
+    p.style.setProperty('--d',(Math.random()*.8+.6)+'s');
+    p.style.left=e.clientX+'px';p.style.top=e.clientY+'px';
+    const colors=['var(--gold)','var(--lavender)','var(--pink)','var(--gold-soft)'];
+    p.style.background=colors[Math.floor(Math.random()*colors.length)];
+    p.style.width=p.style.height=(Math.random()*5+3)+'px';
+    document.body.appendChild(p);
+    setTimeout(()=>p.remove(),1600);
+  }
+  // glow the screen
+  const flash=document.createElement('div');
+  flash.style.cssText='position:fixed;inset:0;background:radial-gradient(ellipse at center,rgba(201,169,110,.12) 0%,transparent 70%);pointer-events:none;z-index:600;transition:opacity 2s ease;';
+  document.body.appendChild(flash);
+  setTimeout(()=>{flash.style.opacity='0';setTimeout(()=>flash.remove(),2000)},800);
+}
+
+// PARALLAX on scroll
+window.addEventListener('scroll',()=>{
+  const sy=window.scrollY;
+  const hero=document.querySelector('#hero');
+  if(hero)hero.style.transform=`translateY(${sy*.3}px)`;
+});
+
+// AUDIO (silent tone to satisfy browsers)
+let audioCtx,isPlaying=false;
+function toggleAudio(){
+  const btn=document.getElementById('audioBtn');
+  if(!audioCtx){
+    audioCtx=new(window.AudioContext||window.webkitAudioContext)();
+    // Generate soft ambient tones
+    playAmbient(audioCtx);
+    isPlaying=true;btn.textContent='♪ MUTE';
+  } else if(isPlaying){
+    audioCtx.suspend();isPlaying=false;btn.textContent='♪ MUSIC';
+  } else {
+    audioCtx.resume();isPlaying=true;btn.textContent='♪ MUTE';
+  }
+}
+
+function playAmbient(ctx){
+  const notes=[261.63,293.66,329.63,349.23,392.00,440.00,493.88];
+  
+  function playNote(freq,time,dur,vol=0.04){
+    const osc=ctx.createOscillator();
+    const gain=ctx.createGain();
+    const filter=ctx.createBiquadFilter();
+    filter.type='lowpass';filter.frequency.value=800;
+    osc.connect(filter);filter.connect(gain);gain.connect(ctx.destination);
+    osc.type='sine';osc.frequency.value=freq;
+    gain.gain.setValueAtTime(0,time);
+    gain.gain.linearRampToValueAtTime(vol,time+1.5);
+    gain.gain.linearRampToValueAtTime(0,time+dur);
+    osc.start(time);osc.stop(time+dur+.1);
+  }
+  
+  // Ambient pad
+  const padOsc=ctx.createOscillator();
+  const padGain=ctx.createGain();
+  const padFilter=ctx.createBiquadFilter();
+  padFilter.type='lowpass';padFilter.frequency.value=400;
+  padOsc.connect(padFilter);padFilter.connect(padGain);padGain.connect(ctx.destination);
+  padOsc.type='sine';padOsc.frequency.value=130.81;
+  padGain.gain.setValueAtTime(0,ctx.currentTime);
+  padGain.gain.linearRampToValueAtTime(0.02,ctx.currentTime+3);
+  padOsc.start();
+  
+  // Gentle melody
+  const melody=[0,4,7,9,7,4,0,2,4,7,9,12];
+  const baseFreq=261.63;
+  melody.forEach((semitone,i)=>{
+    const freq=baseFreq*Math.pow(2,semitone/12);
+    const t=ctx.currentTime+3+i*3;
+    playNote(freq,t,4,0.03);
+  });
+  
+  // Loop
+  const loopDur=melody.length*3+8;
+  setTimeout(()=>{ if(ctx.state==='running') playAmbient(ctx); },loopDur*1000);
+}
+</script>
+</body>
+</html>
